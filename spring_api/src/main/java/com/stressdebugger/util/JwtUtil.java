@@ -12,7 +12,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final SecretKey key = Keys.hmacShaKeyFor("MySecretKeyForJWTTokenGenerationAndValidation1234567890".getBytes());
+    private final SecretKey key = Keys.hmacShaKeyFor("MySecretKeyForJWTTokenGenerationAndValidation1234567890ABCDEFGHIJ".getBytes());
 
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
