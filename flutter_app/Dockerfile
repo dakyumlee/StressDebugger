@@ -5,7 +5,8 @@ COPY pubspec.* ./
 RUN flutter pub get
 
 COPY . .
-RUN flutter build web --release --dart-define=API_URL=https://your-backend-url.railway.app/api
+ARG API_URL
+RUN flutter build web --release --dart-define=API_URL=${API_URL}
 
 FROM nginx:alpine
 COPY --from=build /app/build/web /usr/share/nginx/html
