@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["...", "maven", "jdk17"]
+nixPkgs = ["maven", "jdk17"]
 
 [phases.build]
-cmds = ["cd spring_api && mvn clean package -DskipTests"]
+cmds = ["mvn -f spring_api/pom.xml clean package -DskipTests"]
 
 [start]
-cmd = "java -jar spring_api/target/*.jar"
+cmd = "java -jar spring_api/target/stress-api-1.0.0.jar"
