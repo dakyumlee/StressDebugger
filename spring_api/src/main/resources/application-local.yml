@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/stressdebugger
+    username: stress
+    password: stress
+    driver-class-name: org.postgresql.Driver
+
+python:
+  service:
+    url: http://localhost:5000

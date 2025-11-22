@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StressDebugger Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>StressDebugger Dashboard</h1>
+            <button id="logout-btn">로그아웃</button>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>평균 빡침 지수</h3>
+                <p class="stat-value" id="avg-anger">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>평균 기술 요인</h3>
+                <p class="stat-value" id="avg-tech">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>평균 인간 요인</h3>
+                <p class="stat-value" id="avg-human">-</p>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2>최근 7일 빡침 그래프</h2>
+            <canvas id="angerChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>기술 vs 인간 요인 비교</h2>
+            <canvas id="factorChart"></canvas>
+        </div>
+
+        <div class="logs-container">
+            <h2>최근 기록</h2>
+            <div id="recent-logs"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>
