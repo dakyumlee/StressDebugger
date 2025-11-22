@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["...", "maven", "jdk17"]
+
+[phases.build]
+cmds = ["cd spring_api && mvn clean package -DskipTests"]
+
+[start]
+cmd = "java -jar spring_api/target/*.jar"
