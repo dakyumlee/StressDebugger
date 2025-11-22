@@ -1,10 +1,10 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.backend"
   },
   "deploy": {
-    "startCommand": "cd spring_api && mvn spring-boot:run -Dspring-boot.run.profiles=docker",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
