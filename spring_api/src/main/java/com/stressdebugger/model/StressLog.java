@@ -16,7 +16,6 @@ public class StressLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
     private String username;
     
     @Column(nullable = false, length = 1000)
