@@ -16,6 +16,7 @@ public class LogService {
     
     private final StressLogRepository logRepository;
     private final PythonService pythonService;
+    private final UserRepository userRepository;
     
     public StressLogResponse createLog(String username, LogRequest request) {
         AnalysisResult analysis;
@@ -45,7 +46,48 @@ public class LogService {
         
         log = logRepository.save(log);
         
+        updateUserProfile(username, log);
+        
         return mapToResponse(log);
+    }
+    
+    private void updateUserProfile(String username, StressLog log) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        List<StressLog> allLogs = logRepository.findByUsernameOrderByCreatedAtDesc(username).stream()
+            .filter(l -> "NORMAL".equals(l.getLogType()))
+            .collect(Collectors.toList());
+        
+        if (allLogs.isEmpty()) return;
+        
+        double avgAnger = allLogs.stream().mapToInt(StressLog::getAngerLevel).average().orElse(0);
+        double avgAnxiety = allLogs.stream().mapToInt(StressLog::getAnxiety).average().orElse(0);
+        double avgTech = allLogs.stream().mapToInt(StressLog::getTechFactor).average().orElse(0);
+        double avgHuman = allLogs.stream().mapToInt(StressLog::getHumanFactor).average().orElse(0);
+        
+        double swearLevel = calculateSwearLevel(log.getText());
+        double currentAvgSwear = user.getAvgSwearLevel();
+        double newAvgSwear = (currentAvgSwear * (allLogs.size() - 1) + swearLevel) / allLogs.size();
+        
+        user.setTotalLogs(allLogs.size());
+        user.setAvgAngerLevel(Math.round(avgAnger * 10) / 10.0);
+        user.setAvgAnxiety(Math.round(avgAnxiety * 10) / 10.0);
+        user.setAvgSwearLevel(Math.round(newAvgSwear * 10) / 10.0);
+        user.setTechRatio(avgHuman > 0 ? Math.round((avgTech / avgHuman) * 100) / 100.0 : 0.0);
+        
+        userRepository.save(user);
+    }
+    
+    private double calculateSwearLevel(String text) {
+        String[] swearWords = {"ㅅㅂ", "시발", "씨발", "ㅂㅅ", "병신", "개새", "좆", "ㅈ같", "ㅈ됐", "엿먹", "ㅈ나", "존나"};
+        long count = 0;
+        for (String swear : swearWords) {
+            if (text.contains(swear)) {
+                count++;
+            }
+        }
+        return Math.min(count * 20.0, 100.0);
     }
     
     public StressLogResponse createQuickLog(String username, QuickLogRequest request) {
@@ -99,6 +141,7 @@ public class LogService {
         }
         
         log = logRepository.save(log);
+        updateUserProfile(username, log);
         
         return mapToResponse(log);
     }
@@ -112,6 +155,7 @@ public class LogService {
         }
         
         logRepository.delete(log);
+        updateUserProfile(username, null);
     }
     
     private StressLogResponse mapToResponse(StressLog log) {

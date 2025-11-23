@@ -34,4 +34,28 @@ public class User {
     
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Builder.Default
+    private Integer totalLogs = 0;
+    
+    @Builder.Default
+    private Double avgAngerLevel = 0.0;
+    
+    @Builder.Default
+    private Double avgAnxiety = 0.0;
+    
+    @Builder.Default
+    private Double avgSwearLevel = 0.0;
+    
+    @Builder.Default
+    private Double techRatio = 0.0;
+    
+    @Builder.Default
+    private String humorPreference = "병맛";
+    
+    @Builder.Default
+    private Integer sensitivityLevel = 5;
+    
+    @Builder.Default
+    private String preferredMessageLength = "중간";
 }
