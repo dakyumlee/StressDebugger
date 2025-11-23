@@ -58,7 +58,7 @@ public class AdminService {
     }
     
     public List<StressLog> getAllLogs() {
-        return logRepository.findAllOrderByCreatedAtDesc();
+        return logRepository.findAllByOrderByCreatedAtDesc();
     }
     
     @Transactional
