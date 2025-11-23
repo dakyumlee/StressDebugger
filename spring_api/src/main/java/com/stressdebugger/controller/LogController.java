@@ -1,55 +1,49 @@
 package com.stressdebugger.controller;
 
-import com.stressdebugger.dto.LogRequest;
-import com.stressdebugger.model.StressLog;
-import com.stressdebugger.service.LogService;
+import com.stressdebugger.dto.*;
+import com.stressdebugger.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/logs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class LogController {
     
     private final LogService logService;
+    private final JwtService jwtService;
     
     @PostMapping
-    public ResponseEntity<StressLog> createLog(
-        Authentication auth,
-        @RequestBody LogRequest request
-    ) {
-        return ResponseEntity.ok(logService.createLog(auth.getName(), request));
+    public ResponseEntity<StressLogResponse> createLog(@RequestBody LogRequest request, @RequestHeader("Authorization") String token) {
+        String username = jwtService.extractUsername(token.substring(7));
+        return ResponseEntity.ok(logService.createLog(username, request));
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<List<StressLog>> getMyLogs(Authentication auth) {
-        return ResponseEntity.ok(logService.getUserLogs(auth.getName()));
+    @PostMapping("/quick")
+    public ResponseEntity<StressLogResponse> createQuickLog(@RequestBody QuickLogRequest request, @RequestHeader("Authorization") String token) {
+        String username = jwtService.extractUsername(token.substring(7));
+        return ResponseEntity.ok(logService.createQuickLog(username, request));
     }
     
-    @GetMapping("/daily")
-    public ResponseEntity<List<StressLog>> getDailyLogs(Authentication auth) {
-        return ResponseEntity.ok(logService.getTodayLogs(auth.getName()));
+    @GetMapping("/history")
+    public ResponseEntity<List<StressLogResponse>> getHistory(@RequestHeader("Authorization") String token) {
+        String username = jwtService.extractUsername(token.substring(7));
+        return ResponseEntity.ok(logService.getUserHistory(username));
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<StressLog> updateLog(
-        Authentication auth,
-        @PathVariable Long id,
-        @RequestBody LogRequest request
-    ) {
-        return ResponseEntity.ok(logService.updateLog(auth.getName(), id, request));
+    public ResponseEntity<StressLogResponse> updateLog(@PathVariable Long id, @RequestBody LogRequest request, @RequestHeader("Authorization") String token) {
+        String username = jwtService.extractUsername(token.substring(7));
+        return ResponseEntity.ok(logService.updateLog(id, username, request));
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLog(
-        Authentication auth,
-        @PathVariable Long id
-    ) {
-        logService.deleteLog(auth.getName(), id);
+    public ResponseEntity<Void> deleteLog(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        String username = jwtService.extractUsername(token.substring(7));
+        logService.deleteLog(id, username);
         return ResponseEntity.noContent().build();
     }
 }

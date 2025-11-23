@@ -2,15 +2,10 @@ package com.stressdebugger.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class StressLogResponse {
-    private Long id;
-    private String username;
-    private String text;
-    private String logType;
+public class AnalysisResult {
     private int angerLevel;
     private int anxiety;
     private int techFactor;
@@ -18,5 +13,4 @@ public class StressLogResponse {
     private String forensicResult;
     private String justification;
     private String consolation;
-    private LocalDateTime createdAt;
 }

@@ -22,8 +22,12 @@ public class User {
     @Column(nullable = false)
     private String password;
     
-    @Column(nullable = false)
     private String nickname;
+    
+    @Column(unique = true, nullable = false)
+    private String inviteCode;
+    
+    private String invitedBy;
     
     @Builder.Default
     private String role = "USER";

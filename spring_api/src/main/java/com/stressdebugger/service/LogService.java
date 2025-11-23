@@ -1,67 +1,66 @@
 package com.stressdebugger.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stressdebugger.dto.LogRequest;
-import com.stressdebugger.model.StressLog;
-import com.stressdebugger.repository.StressLogRepository;
+import com.stressdebugger.dto.*;
+import com.stressdebugger.model.*;
+import com.stressdebugger.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LogService {
     
     private final StressLogRepository logRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PythonService pythonService;
     
-    public StressLog createLog(String username, LogRequest request) {
-        String pythonUrl = System.getenv("PYTHON_SERVICE_URL") + "/analyze";
-        
-        Map<String, Object> aiRequest = new HashMap<>();
-        aiRequest.put("text", request.getText());
-        
-        Map<String, Object> aiResponse = restTemplate.postForObject(
-            pythonUrl, 
-            aiRequest, 
-            Map.class
-        );
-        
-        String forensicJson;
-        try {
-            forensicJson = objectMapper.writeValueAsString(aiResponse.get("forensic_result"));
-        } catch (Exception e) {
-            forensicJson = aiResponse.get("forensic_result").toString();
-        }
+    public StressLogResponse createLog(String username, LogRequest request) {
+        AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
         
         StressLog log = StressLog.builder()
             .username(username)
             .text(request.getText())
-            .angerLevel((Integer) aiResponse.get("anger_level"))
-            .anxiety((Integer) aiResponse.get("anxiety"))
-            .techFactor((Integer) aiResponse.get("tech_factor"))
-            .humanFactor((Integer) aiResponse.get("human_factor"))
-            .forensicResult(forensicJson)
-            .justification((String) aiResponse.get("justification"))
-            .consolation((String) aiResponse.get("consolation"))
+            .logType("NORMAL")
+            .angerLevel(analysis.getAngerLevel())
+            .anxiety(analysis.getAnxiety())
+            .techFactor(analysis.getTechFactor())
+            .humanFactor(analysis.getHumanFactor())
+            .forensicResult(analysis.getForensicResult())
+            .justification(analysis.getJustification())
+            .consolation(analysis.getConsolation())
             .build();
         
-        return logRepository.save(log);
+        log = logRepository.save(log);
+        
+        return mapToResponse(log);
     }
     
-    public List<StressLog> getUserLogs(String username) {
-        return logRepository.findByUsernameOrderByCreatedAtDesc(username);
+    public StressLogResponse createQuickLog(String username, QuickLogRequest request) {
+        StressLog log = StressLog.builder()
+            .username(username)
+            .text(request.getText())
+            .logType("QUICK")
+            .angerLevel(0)
+            .anxiety(0)
+            .techFactor(0)
+            .humanFactor(0)
+            .build();
+        
+        log = logRepository.save(log);
+        
+        return mapToResponse(log);
     }
     
-    public List<StressLog> getTodayLogs(String username) {
-        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
-        return logRepository.findByUsernameAndCreatedAtAfter(username, startOfDay);
+    public List<StressLogResponse> getUserHistory(String username) {
+        return logRepository.findByUsernameOrderByCreatedAtDesc(username).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
     }
     
-    public StressLog updateLog(String username, Long id, LogRequest request) {
+    public StressLogResponse updateLog(Long id, String username, LogRequest request) {
         StressLog log = logRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Log not found"));
         
@@ -69,37 +68,25 @@ public class LogService {
             throw new RuntimeException("Unauthorized");
         }
         
-        String pythonUrl = System.getenv("PYTHON_SERVICE_URL") + "/analyze";
+        log.setText(request.getText());
         
-        Map<String, Object> aiRequest = new HashMap<>();
-        aiRequest.put("text", request.getText());
-        
-        Map<String, Object> aiResponse = restTemplate.postForObject(
-            pythonUrl, 
-            aiRequest, 
-            Map.class
-        );
-        
-        String forensicJson;
-        try {
-            forensicJson = objectMapper.writeValueAsString(aiResponse.get("forensic_result"));
-        } catch (Exception e) {
-            forensicJson = aiResponse.get("forensic_result").toString();
+        if ("NORMAL".equals(log.getLogType())) {
+            AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
+            log.setAngerLevel(analysis.getAngerLevel());
+            log.setAnxiety(analysis.getAnxiety());
+            log.setTechFactor(analysis.getTechFactor());
+            log.setHumanFactor(analysis.getHumanFactor());
+            log.setForensicResult(analysis.getForensicResult());
+            log.setJustification(analysis.getJustification());
+            log.setConsolation(analysis.getConsolation());
         }
         
-        log.setText(request.getText());
-        log.setAngerLevel((Integer) aiResponse.get("anger_level"));
-        log.setAnxiety((Integer) aiResponse.get("anxiety"));
-        log.setTechFactor((Integer) aiResponse.get("tech_factor"));
-        log.setHumanFactor((Integer) aiResponse.get("human_factor"));
-        log.setForensicResult(forensicJson);
-        log.setJustification((String) aiResponse.get("justification"));
-        log.setConsolation((String) aiResponse.get("consolation"));
+        log = logRepository.save(log);
         
-        return logRepository.save(log);
+        return mapToResponse(log);
     }
     
-    public void deleteLog(String username, Long id) {
+    public void deleteLog(Long id, String username) {
         StressLog log = logRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Log not found"));
         
@@ -108,5 +95,22 @@ public class LogService {
         }
         
         logRepository.delete(log);
+    }
+    
+    private StressLogResponse mapToResponse(StressLog log) {
+        return StressLogResponse.builder()
+            .id(log.getId())
+            .username(log.getUsername())
+            .text(log.getText())
+            .logType(log.getLogType())
+            .angerLevel(log.getAngerLevel())
+            .anxiety(log.getAnxiety())
+            .techFactor(log.getTechFactor())
+            .humanFactor(log.getHumanFactor())
+            .forensicResult(log.getForensicResult())
+            .justification(log.getJustification())
+            .consolation(log.getConsolation())
+            .createdAt(log.getCreatedAt())
+            .build();
     }
 }

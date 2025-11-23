@@ -21,6 +21,9 @@ public class StressLog {
     @Column(nullable = false, length = 1000)
     private String text;
     
+    @Builder.Default
+    private String logType = "NORMAL";
+    
     private int angerLevel;
     private int anxiety;
     private int techFactor;

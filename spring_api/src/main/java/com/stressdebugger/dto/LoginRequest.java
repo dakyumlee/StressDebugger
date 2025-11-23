@@ -3,9 +3,7 @@ package com.stressdebugger.dto;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class LoginRequest {
     private String username;
     private String password;
-    private String nickname;
-    private String invitedBy;
 }
