@@ -13,6 +13,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
   String _humorPreference = '병맛';
   int _sensitivityLevel = 5;
   String _preferredMessageLength = '중간';
+  final TextEditingController _nicknameController = TextEditingController(text: '누나');
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         _humorPreference = profile['humorPreference'] ?? '병맛';
         _sensitivityLevel = profile['sensitivityLevel'] ?? 5;
         _preferredMessageLength = profile['preferredMessageLength'] ?? '중간';
+        _nicknameController.text = profile['preferredNickname'] ?? '누나';
         _isLoading = false;
       });
     } catch (e) {
@@ -40,6 +42,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         humorPreference: _humorPreference,
         sensitivityLevel: _sensitivityLevel,
         preferredMessageLength: _preferredMessageLength,
+        preferredNickname: _nicknameController.text.isEmpty ? '누나' : _nicknameController.text,
       );
       
       if (mounted) {
@@ -79,6 +82,11 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSection(
+                    '나를 뭐라고 불러줄까?',
+                    _buildNicknameInput(),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildSection(
                     '위로 스타일',
                     _buildHumorSelector(),
                   ),
@@ -114,6 +122,25 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         const SizedBox(height: 16),
         content,
       ],
+    );
+  }
+
+  Widget _buildNicknameInput() {
+    return TextField(
+      controller: _nicknameController,
+      style: const TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
+      decoration: InputDecoration(
+        hintText: '예: 누나, 형아, 천재, 선배...',
+        hintStyle: const TextStyle(color: Color(0xFF677365), fontFamily: 'TaebaekEunhasu'),
+        filled: true,
+        fillColor: const Color(0xFF50594F),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      maxLength: 20,
     );
   }
 
@@ -179,5 +206,11 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         );
       }).toList(),
     );
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    super.dispose();
   }
 }

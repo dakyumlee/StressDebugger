@@ -160,6 +160,7 @@ class ApiService {
     String? humorPreference,
     int? sensitivityLevel,
     String? preferredMessageLength,
+    String? preferredNickname,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/users/profile'),
@@ -168,6 +169,7 @@ class ApiService {
         if (humorPreference != null) 'humorPreference': humorPreference,
         if (sensitivityLevel != null) 'sensitivityLevel': sensitivityLevel,
         if (preferredMessageLength != null) 'preferredMessageLength': preferredMessageLength,
+        if (preferredNickname != null) 'preferredNickname': preferredNickname,
       }),
     );
 
