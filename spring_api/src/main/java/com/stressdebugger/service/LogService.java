@@ -22,7 +22,7 @@ public class LogService {
         AnalysisResult analysis;
         
         try {
-            analysis = pythonService.analyzeEmotion(request.getText());
+            analysis = pythonService.analyzeEmotion(request.getText(), username);
             
             if (analysis == null) {
                 throw new RuntimeException("AI 분석 실패: 응답 없음");
@@ -124,7 +124,7 @@ public class LogService {
         
         if ("NORMAL".equals(log.getLogType())) {
             try {
-                AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
+                AnalysisResult analysis = pythonService.analyzeEmotion(request.getText(), username);
                 
                 if (analysis != null) {
                     log.setAngerLevel(analysis.getAngerLevel());
