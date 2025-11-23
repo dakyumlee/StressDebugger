@@ -10,7 +10,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://stress-debugger.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:52698"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
@@ -58,6 +69,36 @@ def analyze():
         'consolation': consolation
     }), 200
 
+@app.route('/chat', methods=['POST'])
+def chat():
+    """나만의 AI와 대화"""
+    data = request.get_json()
+    message = data.get('message', '')
+    user_profile = data.get('userProfile', {})
+    conversation_history = data.get('history', [])
+    
+    if not message:
+        return jsonify({'error': 'No message provided'}), 400
+    
+    system_prompt = consoler._build_system_prompt(user_profile)
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(conversation_history)
+    messages.append({"role": "user", "content": message})
+    
+    response = consoler.client.chat.completions.create(
+        model="gpt-4",
+        messages=messages,
+        temperature=0.9
+    )
+    
+    reply = response.choices[0].message.content.strip()
+    
+    return jsonify({
+        'reply': reply,
+        'timestamp': str(int(__import__('time').time()))
+    }), 200
+
 @app.route('/finetuning/upload', methods=['POST'])
 def upload_training_data():
     """JSONL 데이터 업로드 & Fine-tuning Job 생성"""
@@ -100,33 +141,3 @@ def list_finetuned_models():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    """나만의 AI와 대화"""
-    data = request.get_json()
-    message = data.get('message', '')
-    user_profile = data.get('userProfile', {})
-    conversation_history = data.get('history', [])
-    
-    if not message:
-        return jsonify({'error': 'No message provided'}), 400
-    
-    system_prompt = consoler._build_system_prompt(user_profile)
-    
-    messages = [{"role": "system", "content": system_prompt}]
-    messages.extend(conversation_history)
-    messages.append({"role": "user", "content": message})
-    
-    response = consoler.client.chat.completions.create(
-        model="gpt-4",
-        messages=messages,
-        temperature=0.9
-    )
-    
-    reply = response.choices[0].message.content.strip()
-    
-    return jsonify({
-        'reply': reply,
-        'timestamp': str(int(time.time()))
-    }), 200
