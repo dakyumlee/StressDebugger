@@ -5,47 +5,62 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   static const String baseUrl = 'https://stressdebuggerbackend-production.up.railway.app/api';
   
-  Future<String?> getToken() async {
+  static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
   
-  Future<void> saveToken(String token) async {
+  static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
   }
   
-  Future<Map<String, dynamic>> register(String username, String email, String password) async {
+  static Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+  }
+  
+  static Future<Map<String, dynamic>> register(String username, String password, String nickname, {String? invitedBy}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'email': email, 'password': password}),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'nickname': nickname,
+        'invitedBy': invitedBy,
+      }),
     );
     
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       await saveToken(data['token']);
       return data;
+    } else {
+      throw Exception('Registration failed');
     }
-    throw Exception('회원가입 실패');
   }
   
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  static Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
     );
     
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       await saveToken(data['token']);
       return data;
+    } else {
+      throw Exception('Login failed');
     }
-    throw Exception('로그인 실패');
   }
   
-  Future<Map<String, dynamic>> createLog(String text) async {
+  static Future<Map<String, dynamic>> createLog(String text) async {
     final token = await getToken();
     final response = await http.post(
       Uri.parse('$baseUrl/logs'),
@@ -57,25 +72,45 @@ class ApiService {
     );
     
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to create log');
     }
-    throw Exception('로그 생성 실패');
   }
   
-  Future<List<dynamic>> getMyLogs() async {
+  static Future<Map<String, dynamic>> createQuickLog(String text) async {
+    final token = await getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/logs/quick'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'text': text}),
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to create quick log');
+    }
+  }
+  
+  static Future<List<dynamic>> getHistory() async {
     final token = await getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/logs/me'),
+      Uri.parse('$baseUrl/logs/history'),
       headers: {'Authorization': 'Bearer $token'},
     );
     
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load history');
     }
-    throw Exception('히스토리 조회 실패');
   }
   
-  Future<Map<String, dynamic>> updateLog(int id, String text) async {
+  static Future<void> updateLog(int id, String text) async {
     final token = await getToken();
     final response = await http.put(
       Uri.parse('$baseUrl/logs/$id'),
@@ -86,13 +121,12 @@ class ApiService {
       body: jsonEncode({'text': text}),
     );
     
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update log');
     }
-    throw Exception('로그 수정 실패');
   }
   
-  Future<void> deleteLog(int id) async {
+  static Future<void> deleteLog(int id) async {
     final token = await getToken();
     final response = await http.delete(
       Uri.parse('$baseUrl/logs/$id'),
@@ -100,37 +134,11 @@ class ApiService {
     );
     
     if (response.statusCode != 204) {
-      throw Exception('로그 삭제 실패');
+      throw Exception('Failed to delete log');
     }
   }
   
-  Future<Map<String, dynamic>> getWeeklyStats() async {
-    final token = await getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/stats/weekly'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    }
-    throw Exception('통계 조회 실패');
-  }
-  
-  Future<Map<String, dynamic>> getAdminStats() async {
-    final token = await getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/admin/stats'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    }
-    throw Exception('관리자 통계 조회 실패');
-  }
-  
-  Future<List<dynamic>> getAllUsers() async {
+  static Future<List<dynamic>> getAdminUsers() async {
     final token = await getToken();
     final response = await http.get(
       Uri.parse('$baseUrl/admin/users'),
@@ -138,12 +146,13 @@ class ApiService {
     );
     
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load users');
     }
-    throw Exception('유저 목록 조회 실패');
   }
   
-  Future<List<dynamic>> getAllLogs() async {
+  static Future<List<dynamic>> getAdminLogs() async {
     final token = await getToken();
     final response = await http.get(
       Uri.parse('$baseUrl/admin/logs'),
@@ -151,12 +160,13 @@ class ApiService {
     );
     
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load logs');
     }
-    throw Exception('전체 로그 조회 실패');
   }
   
-  Future<void> deleteUser(String username) async {
+  static Future<void> deleteUser(String username) async {
     final token = await getToken();
     final response = await http.delete(
       Uri.parse('$baseUrl/admin/users/$username'),
@@ -164,11 +174,11 @@ class ApiService {
     );
     
     if (response.statusCode != 204) {
-      throw Exception('유저 삭제 실패');
+      throw Exception('Failed to delete user');
     }
   }
   
-  Future<void> deleteAnyLog(int id) async {
+  static Future<void> deleteAnyLog(int id) async {
     final token = await getToken();
     final response = await http.delete(
       Uri.parse('$baseUrl/admin/logs/$id'),
@@ -176,7 +186,7 @@ class ApiService {
     );
     
     if (response.statusCode != 204) {
-      throw Exception('로그 삭제 실패');
+      throw Exception('Failed to delete log');
     }
   }
 }

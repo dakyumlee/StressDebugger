@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../config/colors.dart';
 import '../services/api_service.dart';
 import 'home_screen.dart';
 
@@ -14,14 +13,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nicknameController = TextEditingController();
+  final _inviteCodeController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _register() async {
-    if (_usernameController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
+    if (_usernameController.text.isEmpty || 
+        _passwordController.text.isEmpty || 
         _nicknameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('모든 필드를 입력해주세요')),
+        const SnackBar(content: Text('모든 필수 항목을 입력해주세요')),
       );
       return;
     }
@@ -33,64 +33,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _usernameController.text,
         _passwordController.text,
         _nicknameController.text,
+        invitedBy: _inviteCodeController.text.isEmpty ? null : _inviteCodeController.text,
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      if (!mounted) return;
+      
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('회원가입 실패: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('회원가입 실패: $e')),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF262620),
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        backgroundColor: const Color(0xFF50594F),
+        title: const Text('회원가입', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                '회원가입',
-                style: TextStyle(
-                  fontFamily: 'TaebaekEunhasu',
-                  fontSize: 32,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 48),
               TextField(
                 controller: _usernameController,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
+                style: const TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
                   labelText: '아이디',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
+                  labelStyle: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu'),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.accent),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF677365)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.light),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF96A694)),
                   ),
                 ),
               ),
@@ -98,57 +83,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
+                style: const TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
                   labelText: '비밀번호',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
+                  labelStyle: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu'),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.accent),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF677365)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.light),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF96A694)),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _nicknameController,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
+                style: const TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
                   labelText: '닉네임',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
+                  labelStyle: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu'),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.accent),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF677365)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.light),
-                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Color(0xFF96A694)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _inviteCodeController,
+                style: const TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
+                  labelText: '초대코드 (선택)',
+                  labelStyle: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu'),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF677365)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF96A694)),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    backgroundColor: const Color(0xFF677365),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: AppColors.light)
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          '가입하기',
+                          '회원가입',
                           style: TextStyle(
                             fontFamily: 'TaebaekEunhasu',
-                            fontSize: 16,
-                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            color: Color(0xFFB0BFAE),
                           ),
                         ),
                 ),
@@ -158,13 +151,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    _nicknameController.dispose();
-    super.dispose();
   }
 }
