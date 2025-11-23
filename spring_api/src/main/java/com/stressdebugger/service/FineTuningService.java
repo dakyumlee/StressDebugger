@@ -119,8 +119,8 @@ public class FineTuningService {
         prompt.append("유머 스타일: ").append(user.getHumorPreference()).append(", ");
         prompt.append("감정 민감도: ").append(user.getSensitivityLevel()).append("/10. ");
         
-        prompt.append("위로 메시지는 2-4문장, '에잇~', '피이~' 같은 누나톤 사용, ");
-        prompt.append("반박불가 병맛 논리로 정당화, 사용자를 용사/전사로 칭찬.");
+        prompt.append("위로 메시지는 2-4문장, '에잇~', '피이~' 같은 철부지 동생 엉덩국톤 사용, ");
+        prompt.append("반박불가 병맛 논리로 정당화, 사용자를 용기있다고 칭찬.");
         
         return prompt.toString();
     }

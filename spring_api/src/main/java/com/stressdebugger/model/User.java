@@ -58,4 +58,7 @@ public class User {
     
     @Builder.Default
     private String preferredMessageLength = "중간";
+    
+    @Builder.Default
+    private String preferredNickname = "누나";
 }

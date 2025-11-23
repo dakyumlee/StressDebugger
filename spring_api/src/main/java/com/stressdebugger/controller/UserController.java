@@ -48,6 +48,7 @@ public class UserController {
         profile.put("humorPreference", user.getHumorPreference());
         profile.put("sensitivityLevel", user.getSensitivityLevel());
         profile.put("preferredMessageLength", user.getPreferredMessageLength());
+        profile.put("preferredNickname", user.getPreferredNickname());
         profile.put("totalLogs", user.getTotalLogs());
         
         return ResponseEntity.ok(profile);
@@ -70,6 +71,9 @@ public class UserController {
         }
         if (request.getPreferredMessageLength() != null) {
             user.setPreferredMessageLength(request.getPreferredMessageLength());
+        }
+        if (request.getPreferredNickname() != null) {
+            user.setPreferredNickname(request.getPreferredNickname());
         }
         
         userRepository.save(user);
