@@ -24,7 +24,7 @@ public class User {
     
     private String nickname;
     
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String inviteCode;
     
     private String invitedBy;

@@ -59,6 +59,11 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
+        if (user.getInviteCode() == null || user.getInviteCode().isEmpty()) {
+            user.setInviteCode(generateInviteCode());
+            userRepository.save(user);
+        }
+        
         String token = jwtService.generateToken(user.getUsername());
         
         return LoginResponse.builder()
