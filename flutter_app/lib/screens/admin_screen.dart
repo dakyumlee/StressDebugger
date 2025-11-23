@@ -13,7 +13,6 @@ class _AdminScreenState extends State<AdminScreen> {
   List<dynamic> _users = [];
   List<dynamic> _logs = [];
   bool _isLoading = true;
-  int _selectedTab = 0;
 
   @override
   void initState() {
@@ -124,30 +123,32 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF262620),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF50594F),
-        title: const Text('관리자', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
-        bottom: TabBar(
-          onTap: (index) => setState(() => _selectedTab = index),
-          indicatorColor: const Color(0xFF96A694),
-          labelColor: const Color(0xFFB0BFAE),
-          unselectedLabelColor: const Color(0xFF96A694),
-          tabs: const [
-            Tab(child: Text('회원', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
-            Tab(child: Text('로그', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
-          ],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF262620),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF50594F),
+          title: const Text('관리자', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
+          bottom: const TabBar(
+            indicatorColor: Color(0xFF96A694),
+            labelColor: Color(0xFFB0BFAE),
+            unselectedLabelColor: Color(0xFF96A694),
+            tabs: [
+              Tab(child: Text('회원', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
+              Tab(child: Text('로그', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
+            ],
+          ),
         ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : TabBarView(
+                children: [
+                  _buildUsersView(),
+                  _buildLogsView(),
+                ],
+              ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              children: [
-                _buildUsersView(),
-                _buildLogsView(),
-              ],
-            ),
     );
   }
 
@@ -168,18 +169,9 @@ class _AdminScreenState extends State<AdminScreen> {
               '${user['username']} | ${DateFormat('MM/dd HH:mm').format(date)}',
               style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  DateFormat('MM/dd HH:mm').format(date),
-                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteUser(user['username']),
-                ),
-              ],
+            trailing: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteUser(user['username']),
             ),
           ),
         );
@@ -240,18 +232,9 @@ class _AdminScreenState extends State<AdminScreen> {
               '${log['username']} | ${isQuickLog ? '' : '빡침: ${log['angerLevel']} | '}${DateFormat('MM/dd HH:mm').format(date)}',
               style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  DateFormat('MM/dd HH:mm').format(date),
-                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12, color: Color(0xFF96A694)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteLog(log['id']),
-                ),
-              ],
+            trailing: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteLog(log['id']),
             ),
           ),
         );
