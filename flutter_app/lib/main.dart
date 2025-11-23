@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'screens/landing_screen.dart';
-import 'screens/home_screen.dart';
-import 'services/api_service.dart';
 
 void main() {
   runApp(const StressDebuggerApp());
@@ -27,20 +25,7 @@ class StressDebuggerApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Color(0xFFB0BFAE), fontFamily: 'TaebaekEunhasu'),
         ),
       ),
-      home: FutureBuilder<String?>(
-        future: ApiService().getToken(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.hasData && snapshot.data != null) {
-            return const HomeScreen();
-          }
-          return const LandingScreen();
-        },
-      ),
+      home: const LandingScreen(),
     );
   }
 }

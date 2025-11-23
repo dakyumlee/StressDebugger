@@ -87,4 +87,43 @@ class ApiService {
     }
     throw Exception('통계 조회 실패');
   }
+  
+  Future<Map<String, dynamic>> getAdminStats() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/stats'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('관리자 통계 조회 실패');
+  }
+  
+  Future<List<dynamic>> getAllUsers() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/users'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('유저 목록 조회 실패');
+  }
+  
+  Future<List<dynamic>> getAllLogs() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/logs'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('전체 로그 조회 실패');
+  }
 }
