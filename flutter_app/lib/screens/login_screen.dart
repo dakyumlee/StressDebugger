@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '../config/colors.dart';
 import '../services/api_service.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool isLogin;
+  const LoginScreen({super.key, required this.isLogin});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -14,133 +13,120 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _apiService = ApiService();
+  late bool _isLogin;
   bool _isLoading = false;
 
-  Future<void> _login() async {
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('모든 필드를 입력해주세요')),
-      );
-      return;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _isLogin = widget.isLogin;
+  }
 
+  Future<void> _submit() async {
     setState(() => _isLoading = true);
-
     try {
-      await ApiService.login(
-        _usernameController.text,
-        _passwordController.text,
-      );
-      
+      if (_isLogin) {
+        await _apiService.login(_usernameController.text, _passwordController.text);
+      } else {
+        await _apiService.register(
+          _usernameController.text,
+          _emailController.text,
+          _passwordController.text,
+        );
+      }
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('로그인 실패: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      appBar: AppBar(),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'StressDebugger',
-                style: TextStyle(
-                  fontFamily: 'TaebaekEunhasu',
+              Text(
+                _isLogin ? '로그인' : '회원가입',
+                style: const TextStyle(
                   fontSize: 32,
-                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF96A694),
+                  fontFamily: 'TaebaekEunhasu',
                 ),
               ),
               const SizedBox(height: 48),
               TextField(
                 controller: _usernameController,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
+                style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
                   labelText: '아이디',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.accent),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.light),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  labelStyle: TextStyle(fontFamily: 'TaebaekEunhasu'),
+                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  labelText: '비밀번호',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.accent),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.light),
-                    borderRadius: BorderRadius.circular(8),
+              if (!_isLogin)
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+                  decoration: const InputDecoration(
+                    labelText: '이메일',
+                    labelStyle: TextStyle(fontFamily: 'TaebaekEunhasu'),
+                    border: OutlineInputBorder(),
                   ),
                 ),
+              if (!_isLogin) const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+                decoration: const InputDecoration(
+                  labelText: '비밀번호',
+                  labelStyle: TextStyle(fontFamily: 'TaebaekEunhasu'),
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
+                  onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: const Color(0xFFB0BFAE),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: AppColors.light)
-                      : const Text(
-                          '로그인',
-                          style: TextStyle(
-                            fontFamily: 'TaebaekEunhasu',
-                            fontSize: 16,
-                            color: AppColors.textPrimary,
-                          ),
+                      ? const CircularProgressIndicator(color: Color(0xFFB0BFAE))
+                      : Text(
+                          _isLogin ? '로그인' : '회원가입',
+                          style: const TextStyle(fontSize: 16, fontFamily: 'TaebaekEunhasu'),
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  );
-                },
-                child: const Text(
-                  '회원가입',
-                  style: TextStyle(
-                    fontFamily: 'TaebaekEunhasu',
-                    color: AppColors.accent,
-                  ),
+                onPressed: () => setState(() => _isLogin = !_isLogin),
+                child: Text(
+                  _isLogin ? '회원가입' : '로그인으로 돌아가기',
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
                 ),
               ),
             ],
@@ -148,12 +134,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }
