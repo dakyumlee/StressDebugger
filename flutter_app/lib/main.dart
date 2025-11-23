@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -40,10 +42,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAutoLogin() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
     
     try {
-      final token = await ApiService.getToken();
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
       
       if (!mounted) return;
       
@@ -57,6 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     } catch (e) {
+      print('Auto login error: $e');
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -68,6 +72,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+      backgroundColor: Color(0xFF262620),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -82,6 +87,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 color: Color(0xFFB0BFAE),
               ),
             ),
+            SizedBox(height: 20),
+            CircularProgressIndicator(color: Color(0xFF96A694)),
           ],
         ),
       ),
