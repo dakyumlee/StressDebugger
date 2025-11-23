@@ -42,18 +42,26 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkAutoLogin() async {
     await Future.delayed(const Duration(seconds: 1));
     
-    final token = await ApiService.getToken();
-    
-    if (!mounted) return;
-    
-    if (token != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+    try {
+      final token = await ApiService.getToken();
+      
+      if (!mounted) return;
+      
+      if (token != null && token.isNotEmpty) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
     }
   }
 
