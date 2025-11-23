@@ -25,19 +25,19 @@ public class LogController {
     @PostMapping("/quick")
     public ResponseEntity<StressLogResponse> createQuickLog(@RequestBody QuickLogRequest request, @RequestHeader("Authorization") String token) {
         String username = jwtService.extractUsername(token.substring(7));
-        return ResponseEntity.ok(logService.createQuickLog(username, request));
+        return ResponseEntity.ok(logService.createQuickLog(username, request.getText()));
     }
     
     @GetMapping("/history")
     public ResponseEntity<List<StressLogResponse>> getHistory(@RequestHeader("Authorization") String token) {
         String username = jwtService.extractUsername(token.substring(7));
-        return ResponseEntity.ok(logService.getUserHistory(username));
+        return ResponseEntity.ok(logService.getUserLogs(username));
     }
     
     @PutMapping("/{id}")
     public ResponseEntity<StressLogResponse> updateLog(@PathVariable Long id, @RequestBody LogRequest request, @RequestHeader("Authorization") String token) {
         String username = jwtService.extractUsername(token.substring(7));
-        return ResponseEntity.ok(logService.updateLog(id, username, request));
+        return ResponseEntity.ok(logService.updateLog(id, username, request.getText()));
     }
     
     @DeleteMapping("/{id}")

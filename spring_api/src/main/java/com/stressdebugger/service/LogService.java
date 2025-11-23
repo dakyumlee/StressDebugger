@@ -67,7 +67,7 @@ public class LogService {
         double avgHuman = allLogs.stream().mapToInt(StressLog::getHumanFactor).average().orElse(0);
         
         double swearLevel = calculateSwearLevel(log.getText());
-        double currentAvgSwear = user.getAvgSwearLevel();
+        double currentAvgSwear = user.getAvgSwearLevel() != null ? user.getAvgSwearLevel() : 0.0;
         double newAvgSwear = (currentAvgSwear * (allLogs.size() - 1) + swearLevel) / allLogs.size();
         
         user.setTotalLogs(allLogs.size());
@@ -82,37 +82,44 @@ public class LogService {
     private double calculateSwearLevel(String text) {
         String[] swearWords = {"ㅅㅂ", "시발", "씨발", "ㅂㅅ", "병신", "개새", "좆", "ㅈ같", "ㅈ됐", "엿먹", "ㅈ나", "존나"};
         long count = 0;
+        
         for (String swear : swearWords) {
             if (text.contains(swear)) {
                 count++;
             }
         }
+        
         return Math.min(count * 20.0, 100.0);
     }
     
-    public StressLogResponse createQuickLog(String username, QuickLogRequest request) {
+    public StressLogResponse createQuickLog(String username, String text) {
         StressLog log = StressLog.builder()
             .username(username)
-            .text(request.getText())
+            .text(text)
             .logType("QUICK")
             .angerLevel(0)
             .anxiety(0)
             .techFactor(0)
             .humanFactor(0)
+            .forensicResult("")
+            .justification("")
+            .consolation("간단 메모 저장 완료!")
             .build();
         
         log = logRepository.save(log);
         
+        updateUserProfile(username, log);
+        
         return mapToResponse(log);
     }
     
-    public List<StressLogResponse> getUserHistory(String username) {
+    public List<StressLogResponse> getUserLogs(String username) {
         return logRepository.findByUsernameOrderByCreatedAtDesc(username).stream()
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
     
-    public StressLogResponse updateLog(Long id, String username, LogRequest request) {
+    public StressLogResponse updateLog(Long id, String username, String newText) {
         StressLog log = logRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Log not found"));
         
@@ -120,27 +127,9 @@ public class LogService {
             throw new RuntimeException("Unauthorized");
         }
         
-        log.setText(request.getText());
-        
-        if ("NORMAL".equals(log.getLogType())) {
-            try {
-                AnalysisResult analysis = pythonService.analyzeEmotion(request.getText(), username);
-                
-                if (analysis != null) {
-                    log.setAngerLevel(analysis.getAngerLevel());
-                    log.setAnxiety(analysis.getAnxiety());
-                    log.setTechFactor(analysis.getTechFactor());
-                    log.setHumanFactor(analysis.getHumanFactor());
-                    log.setForensicResult(analysis.getForensicResult());
-                    log.setJustification(analysis.getJustification());
-                    log.setConsolation(analysis.getConsolation());
-                }
-            } catch (Exception e) {
-                System.err.println("AI 분석 실패: " + e.getMessage());
-            }
-        }
-        
+        log.setText(newText);
         log = logRepository.save(log);
+        
         updateUserProfile(username, log);
         
         return mapToResponse(log);
