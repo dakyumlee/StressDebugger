@@ -19,7 +19,7 @@ class ResultScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildStressCard(forensicData),
             const SizedBox(height: 20),
@@ -56,6 +56,7 @@ class ResultScreen extends StatelessWidget {
     final verdict = forensicData['verdict'] ?? '오늘 빡침은 정상 반응입니다';
     
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF50594F),
@@ -140,6 +141,7 @@ class ResultScreen extends StatelessWidget {
 
   Widget _buildJustificationCard() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF50594F),
@@ -169,6 +171,7 @@ class ResultScreen extends StatelessWidget {
 
   Widget _buildConsolationCard() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF50594F),
