@@ -100,3 +100,33 @@ def list_finetuned_models():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    """나만의 AI와 대화"""
+    data = request.get_json()
+    message = data.get('message', '')
+    user_profile = data.get('userProfile', {})
+    conversation_history = data.get('history', [])
+    
+    if not message:
+        return jsonify({'error': 'No message provided'}), 400
+    
+    system_prompt = consoler._build_system_prompt(user_profile)
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(conversation_history)
+    messages.append({"role": "user", "content": message})
+    
+    response = consoler.client.chat.completions.create(
+        model="gpt-4",
+        messages=messages,
+        temperature=0.9
+    )
+    
+    reply = response.choices[0].message.content.strip()
+    
+    return jsonify({
+        'reply': reply,
+        'timestamp': str(int(time.time()))
+    }), 200
