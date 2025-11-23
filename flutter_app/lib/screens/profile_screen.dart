@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'ai_settings_screen.dart';
+import 'chat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -102,6 +104,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AISettingsScreen()),
+                            ).then((_) => _loadData());
+                          },
+                          icon: const Icon(Icons.settings, color: Color(0xFFB0BFAE)),
+                          label: const Text(
+                            'AI 설정',
+                            style: TextStyle(
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFFB0BFAE),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF677365),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ChatScreen()),
+                            );
+                          },
+                          icon: const Icon(Icons.chat, color: Color(0xFFB0BFAE)),
+                          label: const Text(
+                            'AI 대화',
+                            style: TextStyle(
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFFB0BFAE),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF96A694),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   if (_monthlyStats != null && _monthlyStats!['totalLogs'] > 0) ...[
