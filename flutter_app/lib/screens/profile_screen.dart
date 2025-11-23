@@ -303,7 +303,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildDailyChart() {
     if (_monthlyStats == null || _monthlyStats!['dailyStats'] == null) {
-      return const Center(child: Text('데이터 없음'));
+      return const Center(
+        child: Text(
+          '데이터 없음',
+          style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
+        ),
+      );
     }
 
     final dailyStats = _monthlyStats!['dailyStats'] as List;
@@ -343,9 +348,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: angerLevel * 1.2,
                 decoration: BoxDecoration(
                   color: angerLevel > 70
-                      ? Colors.red
+                      ? const Color(0xFFD85A5A)
                       : angerLevel > 40
-                          ? Colors.orange
+                          ? const Color(0xFFC2A24C)
                           : const Color(0xFF96A694),
                   borderRadius: BorderRadius.circular(4),
                 ),
