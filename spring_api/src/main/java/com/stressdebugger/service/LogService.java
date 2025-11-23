@@ -1,5 +1,6 @@
 package com.stressdebugger.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stressdebugger.dto.LogRequest;
 import com.stressdebugger.model.StressLog;
 import com.stressdebugger.repository.StressLogRepository;
@@ -15,6 +16,7 @@ public class LogService {
     
     private final StressLogRepository logRepository;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
     public StressLog createLog(String username, LogRequest request) {
         String pythonUrl = System.getenv("PYTHON_SERVICE_URL") + "/analyze";
@@ -28,6 +30,13 @@ public class LogService {
             Map.class
         );
         
+        String forensicJson;
+        try {
+            forensicJson = objectMapper.writeValueAsString(aiResponse.get("forensic_result"));
+        } catch (Exception e) {
+            forensicJson = aiResponse.get("forensic_result").toString();
+        }
+        
         StressLog log = StressLog.builder()
             .username(username)
             .text(request.getText())
@@ -35,7 +44,7 @@ public class LogService {
             .anxiety((Integer) aiResponse.get("anxiety"))
             .techFactor((Integer) aiResponse.get("tech_factor"))
             .humanFactor((Integer) aiResponse.get("human_factor"))
-            .forensicResult((String) aiResponse.get("forensic"))
+            .forensicResult(forensicJson)
             .justification((String) aiResponse.get("justification"))
             .consolation((String) aiResponse.get("consolation"))
             .build();
