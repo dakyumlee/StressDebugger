@@ -6,48 +6,36 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "stress_logs")
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class StressLog {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private String username;
     
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false, length = 1000)
     private String text;
     
-    @Column(name = "anger_level")
-    private Integer angerLevel;
+    private int angerLevel;
+    private int anxiety;
+    private int techFactor;
+    private int humanFactor;
     
-    private Integer anxiety;
-    
-    @Column(name = "tech_factor")
-    private Integer techFactor;
-    
-    @Column(name = "human_factor")
-    private Integer humanFactor;
-    
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String forensicResult;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String justification;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String consolation;
     
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
