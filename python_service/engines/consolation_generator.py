@@ -24,7 +24,7 @@ class ConsolationGenerator:
     def _build_system_prompt(self, profile):
         base = "너는 StressDebugger의 병맛 위로 AI야. "
         
-        nickname = “누나”
+        nickname = "누나"
         if profile and profile.get('preferredNickname'):
             nickname = profile['preferredNickname']
         
