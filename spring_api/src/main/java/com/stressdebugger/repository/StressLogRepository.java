@@ -12,15 +12,7 @@ import java.util.List;
 @Repository
 public interface StressLogRepository extends JpaRepository<StressLog, Long> {
     
-    List<StressLog> findByUserId(Long userId);
-    
-    List<StressLog> findByUserIdOrderByCreatedAtDesc(Long userId);
-    
-    @Query("SELECT l FROM StressLog l WHERE l.user.id = :userId AND l.createdAt BETWEEN :start AND :end")
-    List<StressLog> findByUserIdAndDateRange(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-    
-    @Query("SELECT l FROM StressLog l WHERE l.user.username = :username ORDER BY l.createdAt DESC")
-    List<StressLog> findByUsername(@Param("username") String username);
+    List<StressLog> findByUsername(String username);
     
     List<StressLog> findByUsernameOrderByCreatedAtDesc(String username);
     
