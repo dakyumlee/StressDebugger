@@ -152,6 +152,20 @@ class ApiService {
     }
   }
   
+  static Future<Map<String, dynamic>> getMonthlyStats() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/stats/monthly'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load monthly stats');
+    }
+  }
+  
   static Future<List<dynamic>> getAdminUsers() async {
     final token = await getToken();
     final response = await http.get(
@@ -201,21 +215,6 @@ class ApiService {
     
     if (response.statusCode != 204) {
       throw Exception('Failed to delete log');
-    }
-  }
-}
-
-  static Future<Map<String, dynamic>> getMonthlyStats() async {
-    final token = await getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/stats/monthly'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(utf8.decode(response.bodyBytes));
-    } else {
-      throw Exception('Failed to load monthly stats');
     }
   }
 }
