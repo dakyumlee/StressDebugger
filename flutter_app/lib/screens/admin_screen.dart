@@ -10,8 +10,6 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  final _apiService = ApiService();
-  Map<String, dynamic>? _stats;
   List<dynamic> _users = [];
   List<dynamic> _logs = [];
   bool _isLoading = true;
@@ -25,11 +23,9 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Future<void> _loadData() async {
     try {
-      final stats = await _apiService.getAdminStats();
-      final users = await _apiService.getAllUsers();
-      final logs = await _apiService.getAllLogs();
+      final users = await ApiService.getAdminUsers();
+      final logs = await ApiService.getAdminLogs();
       setState(() {
-        _stats = stats;
         _users = users;
         _logs = logs;
         _isLoading = false;
@@ -38,30 +34,27 @@ class _AdminScreenState extends State<AdminScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          SnackBar(content: Text('데이터 로드 실패: $e')),
         );
       }
     }
-  }
-
-  DateTime toKST(String dateString) {
-    return DateTime.parse(dateString).add(const Duration(hours: 9));
   }
 
   Future<void> _deleteUser(String username) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('회원 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
-        content: Text('$username 회원을 삭제하시겠습니까?', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
+        backgroundColor: const Color(0xFF50594F),
+        title: const Text('사용자 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
+        content: Text('$username 사용자를 삭제하시겠습니까?', style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+            child: const Text('취소', style: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Colors.red)),
+            child: const Text('삭제', style: TextStyle(color: Colors.red, fontFamily: 'TaebaekEunhasu')),
           ),
         ],
       ),
@@ -69,12 +62,12 @@ class _AdminScreenState extends State<AdminScreen> {
 
     if (confirm == true) {
       try {
-        await _apiService.deleteUser(username);
+        await ApiService.deleteUser(username);
+        _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('회원 삭제 완료')),
+            const SnackBar(content: Text('사용자 삭제 완료')),
           );
-          _loadData();
         }
       } catch (e) {
         if (mounted) {
@@ -90,16 +83,17 @@ class _AdminScreenState extends State<AdminScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('로그 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
-        content: const Text('이 로그를 삭제하시겠습니까?', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+        backgroundColor: const Color(0xFF50594F),
+        title: const Text('로그 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
+        content: const Text('이 로그를 삭제하시겠습니까?', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+            child: const Text('취소', style: TextStyle(color: Color(0xFF96A694), fontFamily: 'TaebaekEunhasu')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Colors.red)),
+            child: const Text('삭제', style: TextStyle(color: Colors.red, fontFamily: 'TaebaekEunhasu')),
           ),
         ],
       ),
@@ -107,12 +101,12 @@ class _AdminScreenState extends State<AdminScreen> {
 
     if (confirm == true) {
       try {
-        await _apiService.deleteAnyLog(id);
+        await ApiService.deleteAnyLog(id);
+        _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('로그 삭제 완료')),
           );
-          _loadData();
         }
       } catch (e) {
         if (mounted) {
@@ -124,127 +118,36 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
+  DateTime toKST(String dateString) {
+    return DateTime.parse(dateString).add(const Duration(hours: 9));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF262620),
       appBar: AppBar(
-        title: const Text('관리자 대시보드', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Container(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Row(
-                    children: [
-                      _buildTab('통계', 0),
-                      _buildTab('유저', 1),
-                      _buildTab('로그', 2),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: _selectedTab == 0
-                      ? _buildStatsView()
-                      : _selectedTab == 1
-                          ? _buildUsersView()
-                          : _buildLogsView(),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildTab(String title, int index) {
-    final isSelected = _selectedTab == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedTab = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'TaebaekEunhasu',
-              color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.grey,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStatCard('전체 유저', '${_stats!['totalUsers']}명', Icons.people),
-          _buildStatCard('전체 로그', '${_stats!['totalLogs']}개', Icons.list),
-          _buildStatCard('평균 빡침', _stats!['avgAngerLevel'].toStringAsFixed(1), Icons.warning),
-          const SizedBox(height: 24),
-          const Text(
-            '빡침 순위 TOP 10',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'TaebaekEunhasu'),
-          ),
-          const SizedBox(height: 16),
-          ...(_stats!['topAngryUsers'] as List).map((user) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    child: Text(
-                      user['avgAngerLevel'].toInt().toString(),
-                      style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
-                    ),
-                  ),
-                  title: Text(user['nickname'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-                  subtitle: Text('로그: ${user['logCount']}개', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-                ),
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Row(
-          children: [
-            Icon(icon, size: 40, color: Theme.of(context).colorScheme.secondary),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 14)),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontFamily: 'TaebaekEunhasu',
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+        backgroundColor: const Color(0xFF50594F),
+        title: const Text('관리자', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
+        bottom: TabBar(
+          onTap: (index) => setState(() => _selectedTab = index),
+          indicatorColor: const Color(0xFF96A694),
+          labelColor: const Color(0xFFB0BFAE),
+          unselectedLabelColor: const Color(0xFF96A694),
+          tabs: const [
+            Tab(child: Text('회원', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
+            Tab(child: Text('로그', style: TextStyle(fontFamily: 'TaebaekEunhasu'))),
           ],
         ),
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              children: [
+                _buildUsersView(),
+                _buildLogsView(),
+              ],
+            ),
     );
   }
 
@@ -256,17 +159,21 @@ class _AdminScreenState extends State<AdminScreen> {
         final user = _users[index];
         final date = toKST(user['createdAt']);
         return Card(
+          color: const Color(0xFF50594F),
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
-            leading: const Icon(Icons.person),
-            title: Text(user['nickname'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-            subtitle: Text(user['username'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
+            leading: const Icon(Icons.person, color: Color(0xFF96A694)),
+            title: Text(user['nickname'] ?? user['username'], style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
+            subtitle: Text(
+              '${user['username']} | ${DateFormat('MM/dd HH:mm').format(date)}',
+              style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   DateFormat('MM/dd HH:mm').format(date),
-                  style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
@@ -287,24 +194,58 @@ class _AdminScreenState extends State<AdminScreen> {
       itemBuilder: (context, index) {
         final log = _logs[index];
         final date = toKST(log['createdAt']);
+        final isQuickLog = log['logType'] == 'QUICK';
+        
         return Card(
+          color: const Color(0xFF50594F),
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             leading: Icon(
-              Icons.warning,
-              color: log['angerLevel'] > 70 ? Colors.red : Colors.orange,
+              isQuickLog ? Icons.flash_on : Icons.warning,
+              color: isQuickLog 
+                  ? const Color(0xFF96A694)
+                  : (log['angerLevel'] > 70 ? Colors.red : Colors.orange),
             ),
-            title: Text(log['text'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
+            title: Row(
+              children: [
+                if (isQuickLog) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF677365),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'QUICK',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontFamily: 'TaebaekEunhasu',
+                        color: Color(0xFFB0BFAE),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    log['text'],
+                    style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
             subtitle: Text(
-              '${log['username']} | 빡침: ${log['angerLevel']}',
-              style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+              '${log['username']} | ${isQuickLog ? '' : '빡침: ${log['angerLevel']} | '}${DateFormat('MM/dd HH:mm').format(date)}',
+              style: const TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   DateFormat('MM/dd HH:mm').format(date),
-                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12),
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12, color: Color(0xFF96A694)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
