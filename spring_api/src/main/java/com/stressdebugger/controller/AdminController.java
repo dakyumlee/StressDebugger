@@ -19,7 +19,6 @@ public class AdminController {
     
     @GetMapping("/stats")
     public ResponseEntity<AdminStatsResponse> getAdminStats(Authentication auth) {
-        // 간단 권한 체크 (실제론 @PreAuthorize 사용 권장)
         return ResponseEntity.ok(adminService.getAdminStats());
     }
     
@@ -31,5 +30,23 @@ public class AdminController {
     @GetMapping("/logs")
     public ResponseEntity<List<StressLog>> getAllLogs(Authentication auth) {
         return ResponseEntity.ok(adminService.getAllLogs());
+    }
+    
+    @DeleteMapping("/users/{username}")
+    public ResponseEntity<Void> deleteUser(
+        Authentication auth,
+        @PathVariable String username
+    ) {
+        adminService.deleteUser(username);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @DeleteMapping("/logs/{id}")
+    public ResponseEntity<Void> deleteAnyLog(
+        Authentication auth,
+        @PathVariable Long id
+    ) {
+        adminService.deleteLog(id);
+        return ResponseEntity.noContent().build();
     }
 }

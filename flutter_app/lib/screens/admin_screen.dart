@@ -48,6 +48,82 @@ class _AdminScreenState extends State<AdminScreen> {
     return DateTime.parse(dateString).add(const Duration(hours: 9));
   }
 
+  Future<void> _deleteUser(String username) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('회원 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+        content: Text('$username 회원을 삭제하시겠습니까?', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _apiService.deleteUser(username);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('회원 삭제 완료')),
+          );
+          _loadData();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('삭제 실패: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteLog(int id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('로그 삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+        content: const Text('이 로그를 삭제하시겠습니까?', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _apiService.deleteAnyLog(id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('로그 삭제 완료')),
+          );
+          _loadData();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('삭제 실패: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,9 +261,18 @@ class _AdminScreenState extends State<AdminScreen> {
             leading: const Icon(Icons.person),
             title: Text(user['nickname'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
             subtitle: Text(user['username'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-            trailing: Text(
-              DateFormat('MM/dd HH:mm').format(date),
-              style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  DateFormat('MM/dd HH:mm').format(date),
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteUser(user['username']),
+                ),
+              ],
             ),
           ),
         );
@@ -214,9 +299,18 @@ class _AdminScreenState extends State<AdminScreen> {
               '${log['username']} | 빡침: ${log['angerLevel']}',
               style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
             ),
-            trailing: Text(
-              DateFormat('MM/dd HH:mm').format(date),
-              style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  DateFormat('MM/dd HH:mm').format(date),
+                  style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteLog(log['id']),
+                ),
+              ],
             ),
           ),
         );

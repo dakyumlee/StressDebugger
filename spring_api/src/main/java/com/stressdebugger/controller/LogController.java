@@ -34,4 +34,22 @@ public class LogController {
     public ResponseEntity<List<StressLog>> getDailyLogs(Authentication auth) {
         return ResponseEntity.ok(logService.getTodayLogs(auth.getName()));
     }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<StressLog> updateLog(
+        Authentication auth,
+        @PathVariable Long id,
+        @RequestBody LogRequest request
+    ) {
+        return ResponseEntity.ok(logService.updateLog(auth.getName(), id, request));
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLog(
+        Authentication auth,
+        @PathVariable Long id
+    ) {
+        logService.deleteLog(auth.getName(), id);
+        return ResponseEntity.noContent().build();
+    }
 }

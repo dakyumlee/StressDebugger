@@ -5,6 +5,7 @@ import com.stressdebugger.model.*;
 import com.stressdebugger.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,5 +59,22 @@ public class AdminService {
     
     public List<StressLog> getAllLogs() {
         return logRepository.findAllOrderByCreatedAtDesc();
+    }
+    
+    @Transactional
+    public void deleteUser(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        logRepository.deleteByUsername(username);
+        
+        userRepository.delete(user);
+    }
+    
+    public void deleteLog(Long id) {
+        StressLog log = logRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Log not found"));
+        
+        logRepository.delete(log);
     }
 }

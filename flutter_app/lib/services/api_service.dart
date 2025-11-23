@@ -75,6 +75,35 @@ class ApiService {
     throw Exception('히스토리 조회 실패');
   }
   
+  Future<Map<String, dynamic>> updateLog(int id, String text) async {
+    final token = await getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/logs/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'text': text}),
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('로그 수정 실패');
+  }
+  
+  Future<void> deleteLog(int id) async {
+    final token = await getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/logs/$id'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode != 204) {
+      throw Exception('로그 삭제 실패');
+    }
+  }
+  
   Future<Map<String, dynamic>> getWeeklyStats() async {
     final token = await getToken();
     final response = await http.get(
@@ -125,5 +154,29 @@ class ApiService {
       return jsonDecode(response.body);
     }
     throw Exception('전체 로그 조회 실패');
+  }
+  
+  Future<void> deleteUser(String username) async {
+    final token = await getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/admin/users/$username'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode != 204) {
+      throw Exception('유저 삭제 실패');
+    }
+  }
+  
+  Future<void> deleteAnyLog(int id) async {
+    final token = await getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/admin/logs/$id'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode != 204) {
+      throw Exception('로그 삭제 실패');
+    }
   }
 }
