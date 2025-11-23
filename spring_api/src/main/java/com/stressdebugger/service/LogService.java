@@ -18,7 +18,17 @@ public class LogService {
     private final PythonService pythonService;
     
     public StressLogResponse createLog(String username, LogRequest request) {
-        AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
+        AnalysisResult analysis;
+        
+        try {
+            analysis = pythonService.analyzeEmotion(request.getText());
+            
+            if (analysis == null) {
+                throw new RuntimeException("AI 분석 실패: 응답 없음");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("AI 분석 실패: " + e.getMessage());
+        }
         
         StressLog log = StressLog.builder()
             .username(username)
@@ -71,14 +81,21 @@ public class LogService {
         log.setText(request.getText());
         
         if ("NORMAL".equals(log.getLogType())) {
-            AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
-            log.setAngerLevel(analysis.getAngerLevel());
-            log.setAnxiety(analysis.getAnxiety());
-            log.setTechFactor(analysis.getTechFactor());
-            log.setHumanFactor(analysis.getHumanFactor());
-            log.setForensicResult(analysis.getForensicResult());
-            log.setJustification(analysis.getJustification());
-            log.setConsolation(analysis.getConsolation());
+            try {
+                AnalysisResult analysis = pythonService.analyzeEmotion(request.getText());
+                
+                if (analysis != null) {
+                    log.setAngerLevel(analysis.getAngerLevel());
+                    log.setAnxiety(analysis.getAnxiety());
+                    log.setTechFactor(analysis.getTechFactor());
+                    log.setHumanFactor(analysis.getHumanFactor());
+                    log.setForensicResult(analysis.getForensicResult());
+                    log.setJustification(analysis.getJustification());
+                    log.setConsolation(analysis.getConsolation());
+                }
+            } catch (Exception e) {
+                System.err.println("AI 분석 실패: " + e.getMessage());
+            }
         }
         
         log = logRepository.save(log);

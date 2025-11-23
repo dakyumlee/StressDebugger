@@ -9,4 +9,4 @@ spring:
 
 python:
   service:
-    url: https://${PYTHON_SERVICE_URL}
+    url: https://stressdebuggerai-production.up.railway.app
