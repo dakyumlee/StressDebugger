@@ -42,6 +42,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  DateTime toKST(String dateString) {
+    return DateTime.parse(dateString).add(const Duration(hours: 9));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLogCard(Map<String, dynamic> log) {
-    final date = DateTime.parse(log['createdAt']);
+    final date = toKST(log['createdAt']);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(

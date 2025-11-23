@@ -44,6 +44,10 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
+  DateTime toKST(String dateString) {
+    return DateTime.parse(dateString).add(const Duration(hours: 9));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,6 +178,7 @@ class _AdminScreenState extends State<AdminScreen> {
       itemCount: _users.length,
       itemBuilder: (context, index) {
         final user = _users[index];
+        final date = toKST(user['createdAt']);
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
@@ -181,7 +186,7 @@ class _AdminScreenState extends State<AdminScreen> {
             title: Text(user['nickname'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
             subtitle: Text(user['username'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
             trailing: Text(
-              DateFormat('MM/dd').format(DateTime.parse(user['createdAt'])),
+              DateFormat('MM/dd HH:mm').format(date),
               style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
             ),
           ),
@@ -196,6 +201,7 @@ class _AdminScreenState extends State<AdminScreen> {
       itemCount: _logs.length,
       itemBuilder: (context, index) {
         final log = _logs[index];
+        final date = toKST(log['createdAt']);
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
@@ -209,7 +215,7 @@ class _AdminScreenState extends State<AdminScreen> {
               style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
             ),
             trailing: Text(
-              DateFormat('MM/dd HH:mm').format(DateTime.parse(log['createdAt'])),
+              DateFormat('MM/dd HH:mm').format(date),
               style: const TextStyle(fontFamily: 'TaebaekEunhasu', fontSize: 12),
             ),
           ),
