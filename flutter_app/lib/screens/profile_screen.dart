@@ -12,19 +12,22 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userInfo;
+  Map<String, dynamic>? _monthlyStats;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserInfo();
+    _loadData();
   }
 
-  Future<void> _loadUserInfo() async {
+  Future<void> _loadData() async {
     try {
       final userInfo = await ApiService.getUserInfo();
+      final monthlyStats = await ApiService.getMonthlyStats();
       setState(() {
         _userInfo = userInfo;
+        _monthlyStats = monthlyStats;
         _isLoading = false;
       });
     } catch (e) {
@@ -101,6 +104,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (_monthlyStats != null && _monthlyStats!['totalLogs'] > 0) ...[
+                    Card(
+                      color: const Color(0xFF50594F),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '월간 통계 (최근 30일)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'TaebaekEunhasu',
+                                color: Color(0xFFB0BFAE),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildStatItem(
+                                  '총 로그',
+                                  '${_monthlyStats!['totalLogs']}개',
+                                  Icons.assignment,
+                                ),
+                                _buildStatItem(
+                                  '평균 빡침',
+                                  '${_monthlyStats!['avgAngerLevel']}',
+                                  Icons.local_fire_department,
+                                ),
+                                _buildStatItem(
+                                  '평균 예민',
+                                  '${_monthlyStats!['avgAnxiety']}',
+                                  Icons.psychology,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const Divider(color: Color(0xFF677365)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '일별 빡침 추이',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'TaebaekEunhasu',
+                                color: Color(0xFFB0BFAE),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 150,
+                              child: _buildDailyChart(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   Card(
                     color: const Color(0xFF50594F),
                     child: Padding(
@@ -207,6 +271,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: const Color(0xFF96A694), size: 32),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'TaebaekEunhasu',
+            color: Color(0xFFB0BFAE),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontFamily: 'TaebaekEunhasu',
+            color: Color(0xFF96A694),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyChart() {
+    if (_monthlyStats == null || _monthlyStats!['dailyStats'] == null) {
+      return const Center(child: Text('데이터 없음'));
+    }
+
+    final dailyStats = _monthlyStats!['dailyStats'] as List;
+    if (dailyStats.isEmpty) {
+      return const Center(
+        child: Text(
+          '데이터 없음',
+          style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFF96A694)),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: dailyStats.length,
+      itemBuilder: (context, index) {
+        final stat = dailyStats[index];
+        final angerLevel = (stat['avgAngerLevel'] as num).toDouble();
+        final date = DateTime.parse(stat['date']);
+        
+        return Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                angerLevel.toInt().toString(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'TaebaekEunhasu',
+                  color: Color(0xFFB0BFAE),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                width: 30,
+                height: angerLevel * 1.2,
+                decoration: BoxDecoration(
+                  color: angerLevel > 70
+                      ? Colors.red
+                      : angerLevel > 40
+                          ? Colors.orange
+                          : const Color(0xFF96A694),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${date.month}/${date.day}',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'TaebaekEunhasu',
+                  color: Color(0xFF677365),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
