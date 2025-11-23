@@ -22,5 +22,13 @@ public interface StressLogRepository extends JpaRepository<StressLog, Long> {
     @Query("SELECT l FROM StressLog l WHERE l.user.username = :username ORDER BY l.createdAt DESC")
     List<StressLog> findByUsername(@Param("username") String username);
     
+    List<StressLog> findByUsernameOrderByCreatedAtDesc(String username);
+    
+    List<StressLog> findByUsernameAndCreatedAtAfter(String username, LocalDateTime createdAt);
+    
+    List<StressLog> findAllByOrderByCreatedAtDesc();
+    
+    List<StressLog> findAllOrderByCreatedAtDesc();
+    
     void deleteByUsername(String username);
 }
