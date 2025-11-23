@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stressdebugger.model.*;
 import com.stressdebugger.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,6 +18,10 @@ public class FineTuningService {
     private final StressLogRepository logRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate = new RestTemplate();
+    
+    @Value("${python.service.url}")
+    private String pythonServiceUrl;
     
     public String generateJSONL() {
         List<StressLog> allLogs = logRepository.findAll().stream()
@@ -59,6 +65,26 @@ public class FineTuningService {
         }
         
         return jsonl.toString();
+    }
+    
+    public Map<String, Object> startFineTuning() {
+        String jsonl = generateJSONL();
+        String url = pythonServiceUrl + "/finetuning/upload";
+        
+        Map<String, String> request = new HashMap<>();
+        request.put("jsonl", jsonl);
+        
+        return restTemplate.postForObject(url, request, Map.class);
+    }
+    
+    public Map<String, Object> getJobStatus(String jobId) {
+        String url = pythonServiceUrl + "/finetuning/status/" + jobId;
+        return restTemplate.getForObject(url, Map.class);
+    }
+    
+    public Map<String, Object> listModels() {
+        String url = pythonServiceUrl + "/finetuning/models";
+        return restTemplate.getForObject(url, Map.class);
     }
     
     private String buildSystemPrompt(User user) {
