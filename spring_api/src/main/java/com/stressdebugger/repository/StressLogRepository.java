@@ -28,7 +28,5 @@ public interface StressLogRepository extends JpaRepository<StressLog, Long> {
     
     List<StressLog> findAllByOrderByCreatedAtDesc();
     
-    List<StressLog> findAllOrderByCreatedAtDesc();
-    
     void deleteByUsername(String username);
 }
