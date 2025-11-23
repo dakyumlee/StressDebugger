@@ -53,10 +53,27 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                size: 80,
-                color: Color(0xFF96A694),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Icon(Icons.psychology, size: 90, color: Color(0xFF96A694)),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF262620),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.warning_amber_rounded, size: 35, color: Color(0xFFB0BFAE)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -65,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontFamily: 'TaebaekEunhasu',
                   fontSize: 32,
                   color: Color(0xFFB0BFAE),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
@@ -140,6 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   '회원가입',
                   style: TextStyle(
                     fontFamily: 'TaebaekEunhasu',
+                    fontSize: 16,
                     color: Color(0xFF96A694),
                   ),
                 ),

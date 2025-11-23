@@ -71,24 +71,46 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF262620),
+    return Scaffold(
+      backgroundColor: const Color(0xFF262620),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.warning_amber_rounded, size: 80, color: Color(0xFF96A694)),
-            SizedBox(height: 20),
-            Text(
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(Icons.psychology, size: 90, color: Color(0xFF96A694)),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF262620),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.warning_amber_rounded, size: 35, color: Color(0xFFB0BFAE)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
               'StressDebugger',
               style: TextStyle(
                 fontFamily: 'TaebaekEunhasu',
                 fontSize: 32,
                 color: Color(0xFFB0BFAE),
+                fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
-            CircularProgressIndicator(color: Color(0xFF96A694)),
+            const SizedBox(height: 20),
+            const CircularProgressIndicator(color: Color(0xFF96A694)),
           ],
         ),
       ),
