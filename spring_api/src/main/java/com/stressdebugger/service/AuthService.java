@@ -20,10 +20,12 @@ public class AuthService {
             throw new RuntimeException("Username already exists");
         }
         
+        String nickname = request.getNickname() != null ? request.getNickname() : request.getUsername();
+        
         User user = User.builder()
             .username(request.getUsername())
             .password(passwordEncoder.encode(request.getPassword()))
-            .nickname(request.getNickname())
+            .nickname(nickname)
             .build();
         
         userRepository.save(user);
