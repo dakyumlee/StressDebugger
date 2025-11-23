@@ -31,10 +31,10 @@ class ConsolationGenerator:
         if not profile:
             return base + f"사용자를 '{nickname}'로 칭찬하고, '에잇~', '피이~' 말투를 써."
         
-        swear_level = profile.get('avgSwearLevel', 0)
-        tech_ratio = profile.get('techRatio', 1.0)
-        humor = profile.get('humorPreference', '병맛')
-        sensitivity = profile.get('sensitivityLevel', 5)
+        swear_level = profile.get('avgSwearLevel') or 0
+        tech_ratio = profile.get('techRatio') or 0.0
+        humor = profile.get('humorPreference') or '병맛'
+        sensitivity = profile.get('sensitivityLevel') or 5
         
         if swear_level > 50:
             base += "욕을 자연스럽게 섞어 써. "
@@ -64,7 +64,7 @@ class ConsolationGenerator:
     def _build_user_prompt(self, text, emotion_result, profile):
         anger = emotion_result['anger_level']
         
-        length = profile.get('preferredMessageLength', '중간') if profile else '중간'
+        length = (profile.get('preferredMessageLength') if profile else None) or '중간'
         
         if length == '짧게':
             sentence_count = "1-2문장"
