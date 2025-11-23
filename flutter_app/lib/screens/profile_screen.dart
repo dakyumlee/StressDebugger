@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/api_service.dart';
-import 'package:intl/intl.dart';
-import 'result_screen.dart';
-import 'admin_screen.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,24 +11,20 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _apiService = ApiService();
-  List<dynamic> _logs = [];
-  Map<String, dynamic>? _stats;
+  Map<String, dynamic>? _userInfo;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadUserInfo();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadUserInfo() async {
     try {
-      final logs = await _apiService.getMyLogs();
-      final stats = await _apiService.getWeeklyStats();
+      final userInfo = await ApiService.getUserInfo();
       setState(() {
-        _logs = logs;
-        _stats = stats;
+        _userInfo = userInfo;
         _isLoading = false;
       });
     } catch (e) {
@@ -42,24 +37,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  DateTime toKST(String dateString) {
-    return DateTime.parse(dateString).add(const Duration(hours: 9));
+  Future<void> _logout() async {
+    await ApiService.clearToken();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _copyInviteCode() {
+    if (_userInfo != null) {
+      Clipboard.setData(ClipboardData(text: _userInfo!['inviteCode']));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('초대코드 복사됨!')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF262620),
       appBar: AppBar(
-        title: const Text('프로필', style: TextStyle(fontFamily: 'TaebaekEunhasu')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.admin_panel_settings),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminScreen()),
-            ),
-          ),
-        ],
+        backgroundColor: const Color(0xFF50594F),
+        title: const Text('프로필', style: TextStyle(fontFamily: 'TaebaekEunhasu', color: Color(0xFFB0BFAE))),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -68,114 +71,142 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_stats != null) ...[
-                    _buildStatsCard(),
-                    const SizedBox(height: 24),
-                  ],
-                  const Text(
-                    '내 히스토리',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'TaebaekEunhasu'),
-                  ),
-                  const SizedBox(height: 16),
-                  ..._logs.map((log) => _buildLogCard(log)).toList(),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _buildStatsCard() {
-    final weeklyStats = _stats!['weeklyStats'] as List;
-    
-    return Card(
-      color: Theme.of(context).colorScheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '주간 통계',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'TaebaekEunhasu'),
-            ),
-            const SizedBox(height: 12),
-            Text('총 로그: ${_stats!['totalLogs']}개', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-            Text('평균 빡침: ${_stats!['avgAngerLevel'].toStringAsFixed(1)}', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-            Text('기술 vs 인간: ${_stats!['techVsHumanRatio'].toStringAsFixed(2)}', style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-            const SizedBox(height: 16),
-            if (weeklyStats.isNotEmpty) ...[
-              const Text('주간 빡침 그래프', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'TaebaekEunhasu')),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: weeklyStats.length,
-                  itemBuilder: (context, index) {
-                    final stat = weeklyStats[index];
-                    final angerLevel = stat['avgAngerLevel'];
-                    final date = DateTime.parse(stat['date']);
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
+                  Card(
+                    color: const Color(0xFF50594F),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            angerLevel.toInt().toString(),
-                            style: const TextStyle(fontSize: 12, fontFamily: 'TaebaekEunhasu'),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            width: 40,
-                            height: angerLevel * 1.5,
-                            decoration: BoxDecoration(
-                              color: angerLevel > 70 ? Colors.red : angerLevel > 40 ? Colors.orange : Colors.green,
-                              borderRadius: BorderRadius.circular(4),
+                            _userInfo?['nickname'] ?? '',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFFB0BFAE),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Text(
-                            DateFormat('MM/dd').format(date),
-                            style: const TextStyle(fontSize: 10, fontFamily: 'TaebaekEunhasu'),
+                            '@${_userInfo?['username'] ?? ''}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFF96A694),
+                            ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    color: const Color(0xFF50594F),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '내 초대코드',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFFB0BFAE),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF677365),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    _userInfo?['inviteCode'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'TaebaekEunhasu',
+                                      color: Color(0xFFB0BFAE),
+                                      letterSpacing: 4,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                onPressed: _copyInviteCode,
+                                icon: const Icon(Icons.copy, color: Color(0xFF96A694)),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xFF677365),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '친구에게 공유하세요!',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: 'TaebaekEunhasu',
+                              color: Color(0xFF96A694),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_userInfo?['invitedBy'] != null) ...[
+                    const SizedBox(height: 16),
+                    Card(
+                      color: const Color(0xFF50594F),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person_add, color: Color(0xFF96A694)),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${_userInfo!['invitedBy']}님이 초대함',
+                              style: const TextStyle(
+                                fontFamily: 'TaebaekEunhasu',
+                                color: Color(0xFFB0BFAE),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _logout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF677365),
+                      ),
+                      child: const Text(
+                        '로그아웃',
+                        style: TextStyle(
+                          fontFamily: 'TaebaekEunhasu',
+                          fontSize: 18,
+                          color: Color(0xFFB0BFAE),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogCard(Map<String, dynamic> log) {
-    final date = toKST(log['createdAt']);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultScreen(result: log),
             ),
-          );
-        },
-        child: ListTile(
-          title: Text(log['text'], style: const TextStyle(fontFamily: 'TaebaekEunhasu')),
-          subtitle: Text(
-            '빡침: ${log['angerLevel']} | ${DateFormat('MM/dd HH:mm').format(date)}',
-            style: const TextStyle(fontFamily: 'TaebaekEunhasu'),
-          ),
-          trailing: Icon(
-            Icons.warning,
-            color: log['angerLevel'] > 70 ? Colors.red : Colors.orange,
-          ),
-        ),
-      ),
     );
   }
 }

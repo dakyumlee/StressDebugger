@@ -60,6 +60,20 @@ class ApiService {
     }
   }
   
+  static Future<Map<String, dynamic>> getUserInfo() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load user info');
+    }
+  }
+  
   static Future<Map<String, dynamic>> createLog(String text) async {
     final token = await getToken();
     final response = await http.post(
