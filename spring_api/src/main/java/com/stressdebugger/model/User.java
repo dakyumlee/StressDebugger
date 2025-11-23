@@ -3,16 +3,15 @@ package com.stressdebugger.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class User {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,14 +25,9 @@ public class User {
     @Column(nullable = false)
     private String nickname;
     
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private String role = "USER";
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<StressLog> logs;
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
