@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://stressdebuggerai-production.up.railway.app/api';
+  static const String baseUrl = 'https://stressdebuggerbackend-production.up.railway.app/api';
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
