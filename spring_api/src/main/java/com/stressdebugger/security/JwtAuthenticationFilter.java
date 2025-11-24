@@ -43,7 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = jwtService.extractUsername(token);
                 String role = jwtService.extractRole(token);
                 
+                logger.info("JWT Authentication - Username: " + username + ", Role: " + role);
+                
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+                
+                logger.info("Created Authority: " + authority.getAuthority());
                 
                 UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(
@@ -54,9 +58,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                
+                logger.info("Authentication successful for: " + username);
             }
         } catch (Exception e) {
-            logger.error("JWT authentication failed", e);
+            logger.error("JWT authentication failed: " + e.getMessage(), e);
         }
         
         filterChain.doFilter(request, response);
