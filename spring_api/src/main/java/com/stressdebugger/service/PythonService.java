@@ -37,6 +37,7 @@ public class PythonService {
             profile.put("humorPreference", user.getHumorPreference());
             profile.put("sensitivityLevel", user.getSensitivityLevel());
             profile.put("preferredMessageLength", user.getPreferredMessageLength());
+            profile.put("preferredNickname", user.getPreferredNickname());
             request.put("userProfile", profile);
         }
         
