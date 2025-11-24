@@ -1,5 +1,8 @@
 package com.stressdebugger.controller;
 
+import com.stressdebugger.dto.StressLogResponse;
+import com.stressdebugger.dto.UserProfileResponse;
+import com.stressdebugger.service.AdminService;
 import com.stressdebugger.service.FineTuningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -8,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,6 +21,29 @@ import java.util.Map;
 public class AdminController {
     
     private final FineTuningService fineTuningService;
+    private final AdminService adminService;
+    
+    @GetMapping("/users")
+    public ResponseEntity<List<UserProfileResponse>> getAllUsers() {
+        return ResponseEntity.ok(adminService.getAllUsers());
+    }
+    
+    @GetMapping("/logs")
+    public ResponseEntity<List<StressLogResponse>> getAllLogs() {
+        return ResponseEntity.ok(adminService.getAllLogs());
+    }
+    
+    @DeleteMapping("/users/{username}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String username) {
+        adminService.deleteUser(username);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @DeleteMapping("/logs/{id}")
+    public ResponseEntity<Void> deleteLog(@PathVariable Long id) {
+        adminService.deleteLog(id);
+        return ResponseEntity.noContent().build();
+    }
     
     @GetMapping("/finetuning/export")
     public ResponseEntity<String> exportFineTuningData(Authentication auth) {
